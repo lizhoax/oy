@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-st.set_page_config(page_title="个人信息管理系统（练习版）", page_icon="", layout="wide")
+st.set_page_config(page_title="个人信息管理系统", page_icon="", layout="wide")
 
 BASE_DIR = Path().parent
 DATA_DIR = BASE_DIR / "data"
@@ -14,8 +14,6 @@ COLUMNS = ["id", "title", "category", "date_obtained", "importance", "tags", "no
 def load_data() -> pd.DataFrame:
     if CSV_PATH.exists():
         df = pd.read_csv(CSV_PATH)
-        # 可选：读取时将字符串标签转回列表（如需在其他功能中使用列表格式）
-        # df["tags"] = df["tags"].apply(lambda x: x.split(",") if pd.notna(x) else [])
     else:
         df = pd.DataFrame(columns=COLUMNS)
     return df
@@ -34,11 +32,11 @@ def input_form(df: pd.DataFrame) -> pd.DataFrame:
     with st.form("add_form", clear_on_submit=True):
         new = {}
         new["id"] = (0 if df.empty else int(df["id"].max()) + 1)
-        new["title"] = st.text_input("标题 *", placeholder="例如：三好学生")
+        new["title"] = st.text_input("标题 *", placeholder="")
         CATEGORIES = ["荣誉", "教育经历", "竞赛", "证书", "账号", "其他"]
         new["category"] = st.selectbox("类别", CATEGORIES, index=0)
         new["date_obtained"] = st.date_input("获取日期", value=pd.Timestamp.now())
-        new["importance"] = st.slider("重要性", 1, 99, 8)
+        new["importance"] = st.slider("重要性", 1, 5, 3)
         new["tags"] = st.multiselect("标签", ["家庭", "校园", "职场", "个人", "公开", "私密"])
         new["notes"] = st.text_area("备注（可选）", placeholder="关键信息、链接或行动项…", height=100)
         submitted = st.form_submit_button("保存", type="primary", use_container_width=True)
@@ -54,6 +52,16 @@ def input_form(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# 主流程
+df = load_data()
+st.title("个人信息管理系统")
+st.write("记录重要个人信息，支持分类、查询与导出")
+
+st.subheader("添加新记录")
+df = input_form(df)
+
+st.subheader("当前数据（简化输出）")
+st.write(df)
 
 st.subheader("数据总览")
 if df.empty:
